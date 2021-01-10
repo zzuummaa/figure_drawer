@@ -6,6 +6,8 @@ using namespace Gdiplus;
 
 namespace drawer::winapi {
 
+static int window_count = 0;
+
 int app_loop() {
 	MSG msg;
 
@@ -17,6 +19,10 @@ int app_loop() {
 }
 
 LRESULT wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	if (message == WM_CREATE) {
+		window_count++;
+	}
+
 	auto *w = reinterpret_cast<window*>(GetWindowLong(hWnd, GWLP_USERDATA));
 	if (w != nullptr) {
 		return w->handle_message(message, wParam, lParam);
@@ -26,7 +32,8 @@ LRESULT wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 }
 
 bool window::show(const on_paint_function& fun) {
-	on_paint = fun;
+	if (!window_base::show(fun)) return false;
+
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 
 	// Initialize GDI+.
@@ -77,11 +84,14 @@ LRESULT window::handle_message(UINT message, WPARAM wParam, LPARAM lParam) {
 			return 0;
 		}
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			window_count--;
+			if (window_count == 0) PostQuitMessage(0);
 			return 0;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 }
+
+window::window() : hWnd(nullptr), wndClass(), gdiplusToken(0) { }
 
 } // namespace drawer::winapi

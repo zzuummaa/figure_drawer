@@ -12,7 +12,9 @@
 namespace drawer {
 	class pen_base {
 	public:
-		virtual const void* get_native_pen() const = 0;
+		virtual const void* get_native_pen() const {
+			return nullptr;
+		}
 	};
 
 	class canvas_base {
@@ -20,14 +22,27 @@ namespace drawer {
 		virtual bool draw(const pen_base&, const figure&) {
 			return false;
 		}
+
+		virtual bool draw(const pen_base&, const rect&) {
+			return false;
+		}
+
+		virtual bool draw(const pen_base&, const circle&) {
+			return false;
+		}
+
+		virtual bool draw(const pen_base& p, const polygon& r) {
+			return false;
+		}
+
+		virtual bool draw(const pen_base& p, const triangle& t) {
+			return draw(p, t.as_polygon());
+		}
 	};
 }
 
 namespace drawer::winapi {
-	class canvas;
-
 	class pen final: public pen_base {
-		friend class canvas;
 		Gdiplus::Pen native_pen;
 	public:
 		explicit pen(const color& c) : native_pen(Gdiplus::Color(c.get_r(), c.get_g(), c.get_b())) {}
@@ -53,10 +68,24 @@ namespace drawer::winapi {
 			return canvas_base::draw(pb, f);
 		}
 
-		bool draw(const pen& p, const rect& r) {
+		bool draw(const pen_base& p, const rect& r) override {
 			return graphics.DrawRectangle(
 				reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
 				r.get_x(), r.get_y(), r.get_width(), r.get_height()
+			) == Gdiplus::Ok;
+		}
+
+		bool draw(const pen_base& p, const circle& r) override {
+			return graphics.DrawEllipse(
+					reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
+					r.get_x(), r.get_y(), r.get_r(), r.get_r()
+			) == Gdiplus::Ok;
+		}
+
+		bool draw(const pen_base& p, const polygon& r) override {
+			return graphics.DrawPolygon(
+					reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
+					reinterpret_cast<const Gdiplus::Point*>(r.begin().base()), r.size()
 			) == Gdiplus::Ok;
 		}
 	};

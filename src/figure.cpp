@@ -85,3 +85,40 @@ int dimension::get_height() const {
 void dimension::set_height(int height) {
 	dimension::height = height;
 }
+
+circle::circle(int x, int y, int r) : x(x), y(y), r(r) {}
+
+int circle::get_x() const {
+	return x;
+}
+
+void circle::set_x(int x) {
+	circle::x = x;
+}
+
+int circle::get_y() const {
+	return y;
+}
+
+void circle::set_y(int y) {
+	circle::y = y;
+}
+
+int circle::get_r() const {
+	return r;
+}
+
+void circle::set_r(int r) {
+	circle::r = r;
+}
+
+triangle::triangle(int x_1, int y_1, int x_2, int y_2, int x_3, int y_3) {
+	this->resize(3);
+	(*this)[0] = point { x_1, y_1 };
+	(*this)[1] = point { x_2, y_2 };
+	(*this)[2] = point { x_3, y_3 };
+}
+
+const polygon& triangle::as_polygon() const {
+	return *this;
+}

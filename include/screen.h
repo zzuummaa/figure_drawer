@@ -6,34 +6,43 @@
 #include <Windows.h>
 #include <gdiplus.h>
 
-namespace drawer::winapi {
-	class canvas;
+namespace drawer {
+	class canvas_base;
 
-	class window {
+	class window_base {
 	public:
-		typedef std::function<void(canvas&)> on_paint_function;
+		typedef std::function<void(canvas_base&)> on_paint_function;
 
-	private:
+		window_base();
+
+		virtual bool show(const on_paint_function& fun);
+
+	protected:
+		bool is_showing;
+		on_paint_function on_paint;
+	};
+}
+
+namespace drawer::winapi {
+
+	class window : public window_base {
 		HWND hWnd;
 		WNDCLASS wndClass;
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 		ULONG_PTR gdiplusToken;
 
-		on_paint_function on_paint;
-
 	public:
 		friend class canvas;
 
-		window() = default;
+		window();
 		window(const window&) = delete;
 		window(window&&) = default;
 
 		~window() = default;
 
-		bool show(const on_paint_function& fun);
+		bool show(const on_paint_function& fun) override;
 
 		LRESULT CALLBACK handle_message(UINT message, WPARAM wParam, LPARAM lParam);
-
 	};
 
 	int app_loop();
