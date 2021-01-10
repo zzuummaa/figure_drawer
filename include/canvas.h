@@ -9,17 +9,32 @@
 #include <screen.h>
 #include <gdiplus.h>
 
+namespace drawer {
+	class pen_base {
+	public:
+		virtual const void* get_native_pen() const = 0;
+	};
+
+	class canvas_base {
+	public:
+		virtual bool draw(const pen_base&, const figure&) {
+			return false;
+		}
+	};
+}
+
 namespace drawer::winapi {
 	class canvas;
 
-	class pen {
+	class pen final: public pen_base {
 		friend class canvas;
 		Gdiplus::Pen native_pen;
 	public:
 		explicit pen(const color& c) : native_pen(Gdiplus::Color(c.get_r(), c.get_g(), c.get_b())) {}
+		const void* get_native_pen() const override { return &native_pen; }
 	};
 
-	class canvas {
+	class canvas final : public canvas_base {
 		PAINTSTRUCT ps;
 		HWND hWnd;
 		HDC hdc;
@@ -34,13 +49,15 @@ namespace drawer::winapi {
 			if (hWnd != nullptr) EndPaint(hWnd, &ps);
 		}
 
-		template<typename F, std::enable_if_t<std::is_base_of_v<figure, F>, bool> = true>
-		bool draw(const pen& p, const figure&) {
-			return false;
+		bool draw(const pen_base& pb, const figure& f) override {
+			return canvas_base::draw(pb, f);
 		}
 
 		bool draw(const pen& p, const rect& r) {
-			return graphics.DrawRectangle(&p.native_pen, r.get_x(), r.get_y(), r.get_width(), r.get_height()) == Gdiplus::Ok;
+			return graphics.DrawRectangle(
+				reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
+				r.get_x(), r.get_y(), r.get_width(), r.get_height()
+			) == Gdiplus::Ok;
 		}
 	};
 }
