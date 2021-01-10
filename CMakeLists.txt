@@ -9,6 +9,3 @@ target_include_directories(figure_drawer PUBLIC include)
 
 add_executable(figure_drawer_example example/main.cpp)
 target_link_libraries(figure_drawer_example figure_drawer gdiplus)
-
-add_executable(figure_drawer_transform_example example/transform.cpp)
-target_link_libraries(figure_drawer_transform_example figure_drawer gdiplus)
