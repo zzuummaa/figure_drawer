@@ -1,25 +1,32 @@
 #include <screen.h>
+#include <canvas.h>
 #include <gdiplus.h>
-#include <vector>
 
 using namespace Gdiplus;
 
 namespace drawer::winapi {
 
-int app_loop(std::vector<window>& windows) {
+int app_loop() {
 	MSG msg;
 
 	while(GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+	return msg.wParam;
 }
 
-canvas window::get_canvas(HWND hWnd) {
-	return canvas(hWnd);
+LRESULT wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	auto *w = reinterpret_cast<window*>(GetWindowLong(hWnd, GWLP_USERDATA));
+	if (w != nullptr) {
+		return w->handle_message(message, wParam, lParam);
+	}
+
+	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-bool window::show() {
+bool window::show(const on_paint_function& fun) {
+	on_paint = fun;
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 
 	// Initialize GDI+.
@@ -63,8 +70,10 @@ LRESULT window::handle_message(UINT message, WPARAM wParam, LPARAM lParam) {
 	switch(message)
 	{
 		case WM_PAINT: {
-			canvas c = get_canvas();
-			on_paint(c);
+			if (on_paint) {
+				canvas c(*this);
+				on_paint(c);
+			}
 			return 0;
 		}
 		case WM_DESTROY:
@@ -73,27 +82,6 @@ LRESULT window::handle_message(UINT message, WPARAM wParam, LPARAM lParam) {
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-}
-
-canvas window::get_canvas() {
-	return canvas(hWnd);
-}
-
-void window::on_paint(canvas& c) {
-	// TODO
-}
-
-LRESULT wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	auto *w = reinterpret_cast<window*>(GetWindowLong(hWnd, GWLP_USERDATA));
-	if (w != nullptr) {
-		return w->handle_message(message, wParam, lParam);
-	}
-
-	return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
-bool canvas::draw(rect r) {
-	return false;
 }
 
 } // namespace drawer::winapi
