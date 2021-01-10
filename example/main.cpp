@@ -32,6 +32,10 @@ int main() {
 			pen blue(color(0, 0, 255));
 			assert(c.draw(blue, rect(100, 100, 200, 300)));
 			assert(c.draw(blue, triangle(150, 150, 300, 200, 150, 250)));
+
+			const auto& size = c.get_size();
+			int padding = 10;
+			assert(c.draw(blue, rect(padding, padding, size.get_width() - padding, size.get_height() - padding)));
 		})
 	);
 

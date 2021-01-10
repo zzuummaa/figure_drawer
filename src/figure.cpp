@@ -68,6 +68,8 @@ int rect::get_height() const {
 	return dim.get_height();
 }
 
+dimension::dimension() : width(0), height(0) {}
+
 drawer::dimension::dimension(int width, int height) : width(width), height(height) {}
 
 int dimension::get_width() const {

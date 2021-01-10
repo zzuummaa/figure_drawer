@@ -20,6 +20,7 @@ namespace drawer {
 	protected:
 		bool is_showing;
 		on_paint_function on_paint;
+		dimension size;
 	};
 }
 

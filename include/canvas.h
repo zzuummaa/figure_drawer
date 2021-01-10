@@ -12,32 +12,26 @@
 namespace drawer {
 	class pen_base {
 	public:
-		virtual const void* get_native_pen() const {
-			return nullptr;
-		}
+		virtual const void* get_native_pen() const;
 	};
 
 	class canvas_base {
+	protected:
+		dimension size;
 	public:
-		virtual bool draw(const pen_base&, const figure&) {
-			return false;
-		}
+		canvas_base(const dimension& size);
 
-		virtual bool draw(const pen_base&, const rect&) {
-			return false;
-		}
+		const dimension& get_size() const;
 
-		virtual bool draw(const pen_base&, const circle&) {
-			return false;
-		}
+		virtual bool draw(const pen_base&, const figure&);
 
-		virtual bool draw(const pen_base& p, const polygon& r) {
-			return false;
-		}
+		virtual bool draw(const pen_base&, const rect&);
 
-		virtual bool draw(const pen_base& p, const triangle& t) {
-			return draw(p, t.as_polygon());
-		}
+		virtual bool draw(const pen_base&, const circle&);
+
+		virtual bool draw(const pen_base& p, const polygon& r);
+
+		virtual bool draw(const pen_base& p, const triangle& t);
 	};
 }
 
@@ -45,8 +39,8 @@ namespace drawer::winapi {
 	class pen final: public pen_base {
 		Gdiplus::Pen native_pen;
 	public:
-		explicit pen(const color& c) : native_pen(Gdiplus::Color(c.get_r(), c.get_g(), c.get_b())) {}
-		const void* get_native_pen() const override { return &native_pen; }
+		explicit pen(const color& c);
+		const void* get_native_pen() const override;
 	};
 
 	class canvas final : public canvas_base {
@@ -55,39 +49,20 @@ namespace drawer::winapi {
 		HDC hdc;
 		Gdiplus::Graphics graphics;
 	public:
-		explicit canvas(const window& w) : ps(), hWnd(w.hWnd), hdc(BeginPaint(w.hWnd, &ps)), graphics(hdc) {}
+		explicit canvas(const window& w);
 
 		canvas(const canvas&) = delete;
 		canvas(canvas&&) = delete;
 
-		virtual ~canvas() {
-			if (hWnd != nullptr) EndPaint(hWnd, &ps);
-		}
+		virtual ~canvas();
 
-		bool draw(const pen_base& pb, const figure& f) override {
-			return canvas_base::draw(pb, f);
-		}
+		bool draw(const pen_base& pb, const figure& f) override;
 
-		bool draw(const pen_base& p, const rect& r) override {
-			return graphics.DrawRectangle(
-				reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
-				r.get_x(), r.get_y(), r.get_width(), r.get_height()
-			) == Gdiplus::Ok;
-		}
+		bool draw(const pen_base& p, const rect& r) override;
 
-		bool draw(const pen_base& p, const circle& r) override {
-			return graphics.DrawEllipse(
-					reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
-					r.get_x(), r.get_y(), r.get_r(), r.get_r()
-			) == Gdiplus::Ok;
-		}
+		bool draw(const pen_base& p, const circle& r) override;
 
-		bool draw(const pen_base& p, const polygon& r) override {
-			return graphics.DrawPolygon(
-					reinterpret_cast<const Gdiplus::Pen*>(p.get_native_pen()),
-					reinterpret_cast<const Gdiplus::Point*>(r.begin().base()), r.size()
-			) == Gdiplus::Ok;
-		}
+		bool draw(const pen_base& p, const polygon& r) override;
 	};
 }
 

@@ -83,6 +83,12 @@ LRESULT window::handle_message(UINT message, WPARAM wParam, LPARAM lParam) {
 			}
 			return 0;
 		}
+		case WM_SIZE: {
+			UINT width = LOWORD(lParam);
+			UINT height = HIWORD(lParam);
+			size = dimension(width, height);
+			return 0;
+		}
 		case WM_DESTROY:
 			window_count--;
 			if (window_count == 0) PostQuitMessage(0);

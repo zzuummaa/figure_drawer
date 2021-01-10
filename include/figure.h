@@ -32,6 +32,7 @@ class dimension {
 	int width;
 	int height;
 public:
+	dimension();
 	dimension(int width, int height);
 
 	int get_width() const;
